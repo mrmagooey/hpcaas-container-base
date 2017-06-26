@@ -1,0 +1,3 @@
+[submodule "image/hpcaas-container-daemon"]
+	path = image/hpcaas-container-daemon
+	url = https://github.com/mrmagooey/hpcaas-container-daemon
