@@ -1,4 +1,4 @@
-NAME = mrmagooey/container-hpcaas-base
+NAME = mrmagooey/hpcaas-container-base
 VERSION = 0.1.0
 
 .PHONY: all build build_container_daemon test tag_latest release
@@ -10,7 +10,7 @@ build: build_container_daemon
 
 build_container_daemon:
 	git submodule init
-	cd image/hpcaas-container-daemon && make build 
+	cd image/hpcaas-container-daemon && make build-docker
 
 test:
 	env NAME=$(NAME) VERSION=$(VERSION) ./test/runner.sh

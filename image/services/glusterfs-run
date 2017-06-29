@@ -1,0 +1,95 @@
+#!/usr/bin/python3
+
+import os
+import sys
+import subprocess
+
+# these numbers determine how many glusterfs servers are created for each number of containers
+MINIMUM_CLUSTER_SIZE = 2 # minimum that glusterfs is required for
+SMALL_CLUSTER_SIZE = 10
+MEDIUM_CLUSTER_SIZE = 40
+LARGE_CLUSTER_SIZE = 100
+XLARGE_CLUSTER_SIZE = 300
+
+MINIMUM_GLUSTER_SERVERS = 2
+SMALL_GLUSTER_SERVERS = 4
+MEDIUM_GLUSTER_SERVERS = 8
+LARGE_GLUSTER_SERVERS = 16
+XLARGE_GLUSTER_SERVERS = 32
+
+WORLD_SIZE = 0
+try:
+    WORLD_SIZE = int(os.environ['WORLD_SIZE'])
+except (TypeError, KeyError):
+    print("WORLD_SIZE environment variable does not appear to be correctly set")
+    sys.exit(1)
+
+CLUSTER_CONTAINER_NAMES = []
+try:
+    CLUSTER_CONTAINER_NAMES = os.environ['CLUSTER_CONTAINER_NAMES'].split(',')
+except KeyError:
+    print("CLUSTER_CONTAINER_NAMES environment variable does not appear to be correctly set")
+    sys.exit(1)
+
+LOCAL_CONTAINER_NAME = ""
+
+# early exit if file system not enabled, or if the number of containers is too small
+if os.environ['DISTRIBUTED_FILE_SYSTEM_ENABLED'] == "FALSE":
+    sys.exit(0)
+
+def pick_n_containers(n, containers):
+    """
+    Try to partition the container list evenly with servers
+    """
+    server_list = []
+    index_separator = int(len(containers)/n)
+    for idx, name in enumerate(containers):
+        if idx % index_separator == 0:
+            server_list.append(name)
+    return server_list
+
+def local_create_glusterfs_server():
+    "Run any local commands to prepare this container to be glusterfs server"
+    # create the shared data directory
+    os.mkdir("/glusterfs/volume0/")
+    # Ensure the process is started
+    subprocess.call("service glusterd start".split(' '))
+
+def host_create_glusterfs_cluster(server_names):
+    "Run the commands needed to produce the glusterfs cluster globally"
+
+    # peer probe each container in the cluster
+    for container_name in server_names:
+        gluster_probe_cmd = "gluster peer probe {}".format(container_name)
+        exit_code = subprocess.call(gluster_probe_cmd.split(' '))
+        if exit_code != 0:
+            # TODO tell the daemon that the file system startup has failed
+            # early exit from this setup 
+            sys.exit(0)
+    
+
+def setup_glusterfs_client():
+    "Setup the client to read the glusterfs files"
+    # create the client data directory
+    os.mkdir("/hpcaas/shared/")
+
+def setup_glusterfs():
+    # Pick out some containers to be glusterfs servers
+    if WORLD_SIZE == 1:
+        # don't need glusterfs, just need the client data directory
+        pass
+    elif WORLD_SIZE >= MINIMUM_CLUSTER_SIZE and WORLD_SIZE < SMALL_CLUSTER_SIZE:
+        servers = pick_n_containers(MINIMUM_GLUSTER_SERVERS, CLUSTER_CONTAINER_NAMES)
+    elif WORLD_SIZE >= SMALL_CLUSTER_SIZE and WORLD_SIZE < MEDIUM_CLUSTER_SIZE:
+        servers = pick_n_containers(SMALL_GLUSTER_SERVERS, CLUSTER_CONTAINER_NAMES)
+    elif WORLD_SIZE >= MEDIUM_CLUSTER_SIZE and WORLD_SIZE < LARGE_CLUSTER_SIZE:
+        servers = pick_n_containers(MEDIUM_GLUSTER_SERVERS, CLUSTER_CONTAINER_NAMES)
+    elif WORLD_SIZE >= LARGE_CLUSTER_SIZE and WORLD_SIZE < XLARGE_CLUSTER_SIZE:
+        servers = pick_n_containers(LARGE_GLUSTER_SERVERS, CLUSTER_CONTAINER_NAMES)
+    elif WORLD_SIZE >= XLARGE_CLUSTER_SIZE:
+        servers = pick_n_containers(XLARGE_GLUSTER_SERVERS, CLUSTER_CONTAINER_NAMES)
+
+    
+    
+    
+setup_glusterfs()
