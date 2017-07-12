@@ -1,38 +1,23 @@
-FROM phusion/baseimage:0.9.22
+FROM ubuntu:latest
 
-# init system
-CMD ["/sbin/my_init"]
+# copy everything locally to the build directory
+# this will end up getting deleted, don't refer to it outside of this build process
+COPY . /base_build
 
-# Upgrade system
-RUN apt-get update && apt-get upgrade -y -o Dpkg::Options::="--force-confold"
+# 
+RUN /base_build/build_scripts/prepare.sh && \
+    /base_build/build_scripts/setup-hpcaas.sh && \
+    /base_build/build_scripts/cleanup.sh
 
-## Setup HPCaaS ##
-RUN mkdir -p /hpcaas/
-RUN mkdir -p /hpcaas/code # user code directory
-RUN mkdir -p /hpcaas/results # results directory
-RUN mkdir -p /hpcaas/updates # file communication with the daemon
-RUN mkdir -p /hpcaas/services # services code
+ENV DEBIAN_FRONTEND="teletype" \
+    LANG="en_US.UTF-8" \
+    LANGUAGE="en_US:en" \
+    LC_ALL="en_US.UTF-8"
 
-RUN mkdir -p /etc/my_init.d # runtime scripts
+ENV TINI_VERSION v0.15.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
 
-## HPCaaS Container Daemon ##
-COPY container-daemon.sh /etc/service/hpcaas-container-daemon/run
-COPY hpcaas-container-daemon/hpcaas-container-daemon /usr/local/bin/hpcaas-container-daemon
+ENTRYPOINT ["/tini", "--"]
 
-# Enable SSH
-RUN rm -f /etc/service/sshd/down
-
-# Distributed file system
-# off by default
-ENV DISTRIBUTED_FILE_SYSTEM_ENABLED=FALSE
-# the install script
-COPY services/glusterfs-install.sh /hpcaas/services/glusterfs-install.sh
-# the runtime script
-COPY services/glusterfs-run /etc/my_init.d/glusterfs-run 
-
-## Scientific code ##
-ENV CODE_BINARY_NAME=hpc_code
-
-# Clean up APT when done.
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
+CMD ["/start-runit.sh"]
