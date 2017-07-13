@@ -1,5 +1,6 @@
 NAME = mrmagooey/hpcaas-container-base
 VERSION = 0.1.0
+DAEMON_VERSION = 0.1.0
 
 .PHONY: all build build_container_daemon test tag_latest release
 
@@ -10,6 +11,7 @@ build: build_container_daemon
 
 build_container_daemon:
 	git submodule init
+	git submodule update --remote --merge
 	cd image/hpcaas-container-daemon && make build-docker
 
 test:
