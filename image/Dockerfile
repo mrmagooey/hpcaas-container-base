@@ -4,7 +4,7 @@ FROM ubuntu:latest
 # this will end up getting deleted, don't refer to it outside of this build process
 COPY . /base_build
 
-# 
+ARG DEBIAN_FRONTEND=noninteractive
 RUN /base_build/build_scripts/prepare.sh && \
     /base_build/build_scripts/setup-hpcaas.sh && \
     /base_build/build_scripts/cleanup.sh
