@@ -33,8 +33,8 @@ rm -rf /usr/share/locale
 ## APT
 apt-get update
 $minimal_apt_get_install apt-utils
-## Install HTTPS support for APT.
-$minimal_apt_get_install apt-transport-https ca-certificates
+
+$minimal_apt_get_install ca-certificates
 
 ## Upgrade all packages.
 apt-get dist-upgrade -y --no-install-recommends -o Dpkg::Options::="--force-confold"
