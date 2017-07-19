@@ -7,15 +7,17 @@ DAEMON_VERSION = 0.1.0
 all: build
 
 build: build_container_daemon
+ifneq ($(and $(DOCKER_BUILD_NETWORK),$(DOCKER_BUILD_PROXY)),)
+	docker build -t $(NAME):$(VERSION) --network $(DOCKER_BUILD_NETWORK) --build-arg http_proxy=$(DOCKER_BUILD_PROXY) image
+else
+	echo "No build proxy settings found"
 	docker build -t $(NAME):$(VERSION) image
+endif
 
 build_container_daemon:
 	git submodule init
 	git submodule update --remote --merge
 	cd image/hpcaas-container-daemon && make build-docker
-
-test:
-	env NAME=$(NAME) VERSION=$(VERSION) ./test/runner.sh
 
 tag_latest:
 	docker tag $(NAME):$(VERSION) $(NAME):latest
