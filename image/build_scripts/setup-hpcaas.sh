@@ -9,6 +9,7 @@ mkdir -p /hpcaas/results # results directory
 mkdir -p /hpcaas/updates # file communication with the daemon
 mkdir -p /hpcaas/services # services code
 mkdir -p /hpcaas/daemon # daemon directory
+mkdir -p /hpcaas/parameters # parameters directory
 
 ## HPCaaS Container Daemon ##
 mkdir -p /etc/service/hpcaas-container-daemon/

@@ -1,6 +1,6 @@
 NAME = mrmagooey/hpcaas-container-base
-VERSION = 0.1.0
-DAEMON_VERSION = 0.1.0
+VERSION = 0.1.1
+DAEMON_VERSION = v0.1.0
 
 .PHONY: all build build_container_daemon test tag_latest release
 
@@ -17,7 +17,7 @@ endif
 build_container_daemon:
 	git submodule init
 	git submodule update --remote --merge
-	cd image/hpcaas-container-daemon && make build-docker
+	cd image/hpcaas-container-daemon && git checkout $(DAEMON_VERSION) && make build-docker
 
 tag_latest:
 	docker tag $(NAME):$(VERSION) $(NAME):latest
