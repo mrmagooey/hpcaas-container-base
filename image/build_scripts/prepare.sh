@@ -52,6 +52,7 @@ cp $build_directory/runtime_scripts/start-runit.sh /start-runit.sh
 $minimal_apt_get_install openssh-server
 mkdir -p /var/run/sshd
 mkdir -p /etc/service/sshd
+mkdir -p /root/.ssh
 cp $build_directory/runtime_scripts/sshd.runit /etc/service/sshd/run
 
 

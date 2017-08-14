@@ -1,6 +1,6 @@
 NAME = mrmagooey/hpcaas-container-base
-VERSION = 0.1.1
-DAEMON_VERSION = v0.1.0
+VERSION = 0.1.2
+DAEMON_VERSION = v0.1.1
 
 .PHONY: all build build_container_daemon test tag_latest release
 
